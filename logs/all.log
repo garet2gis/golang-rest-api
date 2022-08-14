@@ -1,0 +1,6 @@
+time="2022-08-14T16:59:27+03:00" level=info msg="create router" func="&{{}}()" file="app.go:15"
+time="2022-08-14T16:59:27+03:00" level=info msg="register user handler" func="&{{}}()" file="app.go:18"
+time="2022-08-14T17:02:05+03:00" level=info msg="create router" func="&{{}}()" file="app.go:14"
+time="2022-08-14T17:02:05+03:00" level=info msg="register user handler" func="&{{}}()" file="app.go:17"
+time="2022-08-14T17:02:05+03:00" level=info msg="start application" func="&{{}}()" file="app.go:27"
+time="2022-08-14T17:02:05+03:00" level=info msg="server is listening 0.0.0.0:1234" func="&{{}}()" file="app.go:40"
