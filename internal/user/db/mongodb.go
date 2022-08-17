@@ -17,27 +17,28 @@ type db struct {
 	logger     *logging.Logger
 }
 
-func (d *db) Create(ctx context.Context, user user.User) (string, error) {
+func (d *db) Create(ctx context.Context, user *user.User) (u *user.User, err error) {
 	d.logger.Debug("create user")
 
 	result, err := d.collection.InsertOne(ctx, user)
 	if err != nil {
-		return "", fmt.Errorf("failed to create user due to error: %s", err)
+		return u, fmt.Errorf("failed to create user due to error: %s", err)
 	}
 
 	d.logger.Debug("convert InsertedID to ObjectID")
 
 	oid, ok := result.InsertedID.(primitive.ObjectID)
 	if ok {
-		return oid.Hex(), nil
+		user.ID = oid.Hex()
+		return user, nil
 	}
 
 	d.logger.Trace(user)
 
-	return "", fmt.Errorf("failed to convert ObjectID to hex, ObjectID: %s", oid)
+	return u, fmt.Errorf("failed to convert ObjectID to hex, ObjectID: %s", oid)
 }
 
-func (d *db) FindAll(ctx context.Context) (u []user.User, err error) {
+func (d *db) FindAll(ctx context.Context) (u []*user.User, err error) {
 	cursor, err := d.collection.Find(ctx, bson.M{})
 
 	if cursor.Err() != nil {
@@ -50,7 +51,7 @@ func (d *db) FindAll(ctx context.Context) (u []user.User, err error) {
 	return u, nil
 }
 
-func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
+func (d *db) FindOne(ctx context.Context, id string) (u *user.User, err error) {
 	oid, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return u, fmt.Errorf("failed to convert hex to ObjectID, hex: %s", id)
@@ -71,33 +72,39 @@ func (d *db) FindOne(ctx context.Context, id string) (u user.User, err error) {
 	return u, nil
 }
 
-func (d *db) Update(ctx context.Context, user user.User) error {
-	objectID, err := primitive.ObjectIDFromHex(user.ID)
+func (d *db) Update(ctx context.Context, newUser *user.User) (u *user.User, err error) {
+	objectID, err := primitive.ObjectIDFromHex(newUser.ID)
 	if err != nil {
-		return fmt.Errorf("failed to convert user ID to ObjectID, user ID: %s", user.ID)
+		return u, fmt.Errorf("failed to convert user ID to ObjectID, user ID: %s", newUser.ID)
 	}
 	filter := bson.M{"_id": objectID}
-
-	userBytes, err := bson.Marshal(filter)
+	userBytes, err := bson.Marshal(newUser)
 	if err != nil {
-		return fmt.Errorf("failed to marshal user, error: %v", err)
+		return u, fmt.Errorf("failed to marshal user, error: %v", err)
 	}
 	var updateUserObj bson.M
 	err = bson.Unmarshal(userBytes, &updateUserObj)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal user bytes, error: %v", err)
+		return u, fmt.Errorf("failed to unmarshal user bytes, error: %v", err)
 	}
 	delete(updateUserObj, "_id")
 	update := bson.M{"$set": updateUserObj}
 	result, err := d.collection.UpdateOne(ctx, filter, update)
+
 	if err != nil {
-		return fmt.Errorf("failed to execute update user query, error: %v", err)
+		return u, fmt.Errorf("failed to execute update user query, error: %v", err)
 	}
 	if result.MatchedCount == 0 {
-		return apperror.ErrNotFound
+		return u, apperror.ErrNotFound
 	}
+	var updateUser user.User
+	err = bson.Unmarshal(userBytes, &updateUser)
+	if err != nil {
+		return u, fmt.Errorf("failed to unmarshal user bytes, error: %v", err)
+	}
+
 	d.logger.Tracef("matched documents: %d, modified documents: %d", result.MatchedCount, result.ModifiedCount)
-	return nil
+	return newUser, nil
 }
 
 func (d *db) Delete(ctx context.Context, id string) error {

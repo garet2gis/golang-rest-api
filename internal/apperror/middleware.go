@@ -25,9 +25,8 @@ func Middleware(h appHandler) http.HandlerFunc {
 				w.Write(appErr.Marshal())
 				return
 			}
+			w.WriteHeader(http.StatusTeapot)
+			w.Write(systemError(err).Marshal())
 		}
-
-		w.WriteHeader(http.StatusTeapot)
-		w.Write(systemError(err).Marshal())
 	}
 }

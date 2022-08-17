@@ -32,16 +32,8 @@ func main() {
 	}
 	storage := db.NewStorage(mongoDBClient, cfg.MongoDB.Collection, logger)
 
-	result, err := storage.FindAll(context.Background())
-
-	if err != nil {
-		panic(err)
-	}
-
-	logger.Info(result)
-
 	logger.Info("register user handler")
-	handler := user.NewHandler(logger)
+	handler := user.NewHandler(storage, logger)
 	handler.Register(router)
 
 	start(router, cfg)

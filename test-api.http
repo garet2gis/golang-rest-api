@@ -11,7 +11,7 @@ client.test("Request executed successfully", function() {
 
 ###
 
-GET http://localhost:8080/users/1
+GET http://localhost:8080/users/62fb871b47b92578c8d30cec
 Content-Type: application/json
 
 {}
@@ -27,7 +27,11 @@ client.test("Request executed successfully", function() {
 POST http://localhost:8080/users
 Content-Type: application/json
 
-{}
+{
+  "username": "lol",
+  "password": "123124",
+  "email": "lol@lol.com"
+}
 
 > {%
 client.test("Request executed successfully", function() {
@@ -37,10 +41,15 @@ client.test("Request executed successfully", function() {
 
 ###
 
-PUT http://localhost:1234/users/1
+PUT http://localhost:8080/users/62fb96501a012dd88f7bb7a2
 Content-Type: application/json
 
-{}
+{
+  "id": "62fb96501a012dd88f7bb7a2",
+  "username": "cringe",
+  "password": "1231254",
+  "email": "lol@lol.com"
+}
 
 > {%
 client.test("Request executed successfully", function() {
@@ -50,20 +59,7 @@ client.test("Request executed successfully", function() {
 
 ###
 
-PATCH http://localhost:1234/users/1
-Content-Type: application/json
-
-{}
-
-> {%
-client.test("Request executed successfully", function() {
-  client.assert(response.status === 204, "Response status is not 204");
-});
-%}
-
-###
-
-DELETE http://localhost:1234/users/1
+DELETE http://localhost:8080/users/62fcbdf79ab50fcf2168e15a
 Content-Type: application/json
 
 {}
